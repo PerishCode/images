@@ -12,9 +12,12 @@ concurrency:
 
 jobs:
   images:
-    runs-on: bootstrap
+    runs-on: docker
+    container:
+      image: docker.io/library/docker:27-cli@sha256:851f91d241214e7c6db86513b270d58776379aacc5eb9c4a87e5b47115e3065c
     env:
-      OCI_PREFIX: ${{ vars.OCI_PREFIX }}
+      DOCKER_HOST: tcp://172.17.0.1:2375
+      OCI_PREFIX: git.perish.top/perishfire/images
       REVISION: ${{ github.sha }}
       TAG: sha-${{ github.sha }}
     steps:
@@ -23,6 +26,7 @@ jobs:
           REPOSITORY: ${{ github.server_url }}/${{ github.repository }}.git
         run: |
           set -eu
+          apk add --no-cache git
           git init .
           git remote add origin "$REPOSITORY"
           git fetch --depth=1 origin "$REVISION"
@@ -52,6 +56,4 @@ jobs:
           set -eu
           registry=${OCI_PREFIX%%/*}
           docker logout "$registry"
-          for image in base node go rust python; do
-            docker buildx imagetools inspect "${OCI_PREFIX}-${image}:${TAG}"
-          done
+          docker buildx imagetools inspect "${OCI_PREFIX}/forge:${TAG}"

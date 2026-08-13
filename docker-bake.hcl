@@ -1,5 +1,5 @@
 variable "OCI_PREFIX" {
-  default = "registry.invalid/perish/images"
+  default = "git.perish.top/perishfire/images"
 }
 
 variable "TAG" {
@@ -23,7 +23,7 @@ variable "NETWORK" {
 }
 
 group "default" {
-  targets = ["base", "node", "go", "rust", "python"]
+  targets = ["forge"]
 }
 
 target "common" {
@@ -36,32 +36,8 @@ target "common" {
   }
 }
 
-target "base" {
+target "forge" {
   inherits = ["common"]
-  dockerfile = "Containerfile.base"
-  tags = ["${OCI_PREFIX}-base:${TAG}"]
-}
-
-target "node" {
-  inherits = ["common"]
-  dockerfile = "Containerfile.node"
-  tags = ["${OCI_PREFIX}-node:${TAG}"]
-}
-
-target "go" {
-  inherits = ["common"]
-  dockerfile = "Containerfile.go"
-  tags = ["${OCI_PREFIX}-go:${TAG}"]
-}
-
-target "rust" {
-  inherits = ["common"]
-  dockerfile = "Containerfile.rust"
-  tags = ["${OCI_PREFIX}-rust:${TAG}"]
-}
-
-target "python" {
-  inherits = ["common"]
-  dockerfile = "Containerfile.python"
-  tags = ["${OCI_PREFIX}-python:${TAG}"]
+  dockerfile = "Containerfile.forge"
+  tags = ["${OCI_PREFIX}/forge:${TAG}"]
 }

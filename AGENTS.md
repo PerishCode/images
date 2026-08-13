@@ -1,14 +1,15 @@
 # Agents
 
-This repository is the public OCI source closure for Perish images. It authors
-image content and the cold-start workflows that prove and publish that content;
-it never owns runner activation, appliance deployment, or a custom executable.
+This repository is the Forgejo-native OCI source closure for Perish images. It
+authors image content and the workflows that prove and publish that content; it
+never owns runner activation, appliance deployment, or a custom executable.
 
 ## Shape
 
-- `Containerfile.<name>` defines one image.
+- `Containerfile.forge` defines the single published Forge job image. Do not
+  split it into language-labelled variants without distinct adopted job contracts.
 - `docker-bake.hcl` is the complete build graph and image naming contract.
-- `.forgejo/workflows` contains only native cold-start guard and publication.
+- `.forgejo/workflows` contains only native guard and publication.
 - Do not add a CLI, task runner, generated build context, reusable action, or
   runner control logic.
 
@@ -18,16 +19,26 @@ it never owns runner activation, appliance deployment, or a custom executable.
 - Images contain no private CA, credential, appliance route, or dependency
   mirror configuration.
 - `mirror.perish.lan` is never an input or publication authority.
+- `git.perish.top/PerishFire/images` is canonical source and
+  `git.perish.top/perishfire/images/*` is canonical OCI authority.
+- GitHub is a one-way source mirror only. It owns no workflow, package,
+  credential, release, or recovery control plane.
 - Deno compatibility and Forgejo Runner lifecycle are outside this repository.
+- The Forge image carries exact Rust and Node toolchains, common Unix build
+  tools, sccache, AWS CLI, and jq. It does not carry Go, Python, Deno, mcli,
+  age, linker policy, private trust, or runner logic.
 - Release identity is an immutable image digest with anonymous public readback.
 
 ## Workflow
 
-- Cold-start jobs target the `bootstrap` label on a disposable host runner with
-  Git, Docker, and Buildx. Actions owns that runner's registration and lifetime.
-- Guard execution is credential-free and only consumes public upstream images.
-- Publication is manual, receives a registry-neutral OCI prefix and credentials,
-  logs out after pushing, and then proves anonymous readback.
+- Initial jobs target the existing `docker` runner and its Docker execution
+  surface. Actions owns that runner's registration and lifetime.
+- Guard execution is credential-free and image builds only consume public
+  upstream images.
+- Publication is manual, writes only to the Forgejo OCI namespace, logs out
+  after pushing, and then proves anonymous readback.
+- Forgejo self-bootstrap after loss of its usable runner or image closure is a
+  deferred cold-start profile. Do not claim it from the initial workflows.
 - Do not execute untrusted pull-request image builds against a host Docker socket.
 
 ## Operating
