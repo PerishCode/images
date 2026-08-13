@@ -1,4 +1,4 @@
 [[document]]
 strategy = "agent"
-source = [{ path = ".", seal = "81f1a5a33308b957373e8fb67add5c80a92c2b4430f51b0e193b0b2098c681d3" }]
+source = [{ path = ".", seal = "780cad6d9d8cf0beb262e83ce9e3ce9dbd50e91c1415fa67c66d5ec4c18eaa5b" }]
 target-seal = "3b50e83fe6eb5f0e9555f2800024bd86d4e93654797f6da330c26e5195d48feb"
