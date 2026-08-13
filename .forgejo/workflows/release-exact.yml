@@ -1,0 +1,57 @@
+name: release-exact
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: images-release-exact
+  cancel-in-progress: false
+
+jobs:
+  images:
+    runs-on: bootstrap
+    env:
+      OCI_PREFIX: ${{ vars.OCI_PREFIX }}
+      REVISION: ${{ github.sha }}
+      TAG: sha-${{ github.sha }}
+    steps:
+      - name: Checkout
+        env:
+          REPOSITORY: ${{ github.server_url }}/${{ github.repository }}.git
+        run: |
+          set -eu
+          git init .
+          git remote add origin "$REPOSITORY"
+          git fetch --depth=1 origin "$REVISION"
+          git checkout --detach FETCH_HEAD
+
+      - name: Authenticate
+        env:
+          OCI_TOKEN: ${{ secrets.OCI_TOKEN }}
+          OCI_USER: ${{ secrets.OCI_USER }}
+        run: |
+          set -eu
+          test -n "$OCI_PREFIX"
+          test -n "$OCI_USER"
+          test -n "$OCI_TOKEN"
+          registry=${OCI_PREFIX%%/*}
+          test "$registry" != "$OCI_PREFIX"
+          printf '%s' "$OCI_TOKEN" | docker login "$registry" --username "$OCI_USER" --password-stdin
+
+      - name: Publish
+        run: |
+          set -eu
+          docker buildx inspect --bootstrap
+          docker buildx bake --push
+
+      - name: Prove public readback
+        run: |
+          set -eu
+          registry=${OCI_PREFIX%%/*}
+          docker logout "$registry"
+          for image in base node go rust python; do
+            docker buildx imagetools inspect "${OCI_PREFIX}-${image}:${TAG}"
+          done

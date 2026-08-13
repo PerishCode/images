@@ -1,0 +1,46 @@
+name: guard
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: images-guard-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  images:
+    runs-on: bootstrap
+    steps:
+      - name: Checkout
+        env:
+          REPOSITORY: ${{ github.server_url }}/${{ github.repository }}.git
+          REVISION: ${{ github.sha }}
+        run: |
+          set -eu
+          git init .
+          git remote add origin "$REPOSITORY"
+          git fetch --depth=1 origin "$REVISION"
+          git checkout --detach FETCH_HEAD
+
+      - name: Prove public inputs
+        run: |
+          set -eu
+          if grep -n -E 'mirror[.]perish[.]lan|PerishLab/actions|runner-control' Containerfile.* docker-bake.hcl; then
+            exit 1
+          fi
+
+      - name: Build
+        env:
+          REVISION: ${{ github.sha }}
+        run: |
+          set -eu
+          docker buildx version
+          docker buildx inspect --bootstrap
+          docker buildx bake --print
+          docker buildx bake --set '*.output=type=cacheonly'
