@@ -26,6 +26,7 @@ jobs:
     steps:
       - name: Checkout
         env:
+          GIT_SSL_CAINFO: /etc/ssl/certs/ca-certificates.crt
           REPOSITORY: ${{ github.server_url }}/${{ github.repository }}.git
           REVISION: ${{ github.sha }}
         run: |
